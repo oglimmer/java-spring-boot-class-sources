@@ -10,7 +10,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.oglimmer.kniffel.db.entity.KniffelGame;
 import com.oglimmer.kniffel.service.GameService;
 
 import java.util.ArrayList;
