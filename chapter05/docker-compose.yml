@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  backend:
+    # change kniffel-server to match your directory name of the spring REST api
+    build: ./kniffel-server
+    ports:
+      - 8080:8080
+  frontend:
+    # change kniffel-client to match your directory name of the vue client
+    build: ./kniffel-client
+    ports:
+      - 80:80

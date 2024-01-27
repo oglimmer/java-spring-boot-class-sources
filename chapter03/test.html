@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+
+<button id="execButton">Execute Request</button>
+
+<hr />
+
+<input id="name1" type="text" placeholder="Name player 1" />
+<input id="name2" type="text" placeholder="Name player 2" />
+<button id="createGame">Create Game</button>
+<div id="result"></div>
+
+<script>
+    document.getElementById('execButton').addEventListener('click', async () => {
+        try {
+            const response = await fetch("http://localhost:8080/api/v1/server/thread-dump", { method: "POST" });
+            alert(`Request successful! Return code = ${response.status}. See dev console for more.`);
+        } catch (error) {
+            console.error('Fetch error:', error);
+            alert('Error occurred! See dev console for more.');
+        }
+    });
+    document.getElementById('createGame').addEventListener('click', async () => {
+        try {
+            const response = await fetch("http://localhost:8080/api/v1/game/", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    playerNames: [
+                        document.getElementById('name1').value,
+                        document.getElementById('name2').value
+                    ],
+                })
+            });
+            alert(`Request successful! Return code = ${response.status}. See dev console for more.`);
+        } catch (error) {
+            console.error('Fetch error:', error);
+            alert('Error occurred! See dev console for more.');
+        }
+    });
+</script>
+
+</body>
+</html>
