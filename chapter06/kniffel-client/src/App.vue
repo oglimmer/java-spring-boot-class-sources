@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+// make URL of the backend server configurable via build-time environment variable
+const SERVER_BASE = `${__API_URL__}`;
+
 interface PlayerInformation {
     index: number;
     name: string;
@@ -30,7 +33,7 @@ const selectedBookingType = ref('');
 
 async function createGame() {
     try {
-        const response = await fetch('http://localhost:8080/api/v1/game/', {
+        const response = await fetch(`${SERVER_BASE}/api/v1/game/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -57,7 +60,7 @@ async function reroll() {
         }
     }
     try {
-        const response = await fetch(`http://localhost:8080/api/v1/game/${gameData.value.gameId}/roll`, {
+        const response = await fetch(`${SERVER_BASE}/api/v1/game/${gameData.value.gameId}/roll`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -87,7 +90,7 @@ async function reroll() {
 // simple REST API call to send the booking type
 async function book() {
     try {
-        const response = await fetch(`http://localhost:8080/api/v1/game/${gameData.value.gameId}/book`, {
+        const response = await fetch(`${SERVER_BASE}/api/v1/game/${gameData.value.gameId}/book`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

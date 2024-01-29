@@ -1,6 +1,10 @@
 # again we start with a base image matching our needs. in this case nodejs
 FROM node:18 as builder
 
+# make REST API URL configurable via environment variable
+ARG API_URL
+ENV API_URL ${API_URL:-http://localhost:8080}
+
 # copy "context root" into /opt/frontend
 COPY . /opt/frontend
 
