@@ -10,32 +10,11 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.oglimmer.kniffel.service.GameService;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@SpringBootTest
-@Testcontainers
 public class RemoveDiceTest {
-
-    @Autowired
-    private GameService gameService;
-
-    @DynamicPropertySource
-    private static void overrideProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
-        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
-        registry.add("spring.datasource.driver-class-name", postgreSQLContainer::getDriverClassName);
-    }
-
-    @Container
-    private static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres")
-            .withDatabaseName("fake-db-name")
-            .withUsername("fake-user")
-            .withPassword("fake-password");
 
     @Test
     public void testRemoveDice_simplest_removeAll() {

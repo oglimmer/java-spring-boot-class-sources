@@ -8,8 +8,8 @@ WORKDIR /opt/build
 # for us "context root" is the base of this project
 COPY . .
 
-# execute mvn package
-RUN ./mvnw package
+# execute mvn verify
+RUN ./mvnw verify
 
 # we start over again, as we only want to run java, we don't need a
 # jdk anymore, use a jre instead

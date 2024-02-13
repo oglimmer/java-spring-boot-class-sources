@@ -25,7 +25,7 @@ import com.oglimmer.kniffel.service.KniffelRules;
 public class KniffelGame {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /**

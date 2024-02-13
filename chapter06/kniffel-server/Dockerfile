@@ -9,7 +9,7 @@ WORKDIR /opt/build
 COPY . .
 
 # execute mvn package
-RUN ./mvnw package -DskipTests
+RUN ./mvnw package
 
 # we start over again, as we only want to run java, we don't need a
 # jdk anymore, use a jre instead

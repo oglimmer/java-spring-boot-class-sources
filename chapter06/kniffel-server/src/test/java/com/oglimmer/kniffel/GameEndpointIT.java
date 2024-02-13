@@ -9,13 +9,34 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class GameEndpointTest {
+@Testcontainers
+public class GameEndpointIT {
 
     @LocalServerPort
     private int port;
+
+    @DynamicPropertySource
+    private static void overrideProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+        registry.add("spring.datasource.driver-class-name", postgreSQLContainer::getDriverClassName);
+    }
+
+    @Container
+    private static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres")
+            .withDatabaseName("fake-db-name")
+            .withUsername("fake-user")
+            .withPassword("fake-password");
 
     @Autowired
     private TestRestTemplate restTemplate;
