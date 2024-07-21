@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.constraints.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -34,7 +35,7 @@ public class GameController {
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = GameResponse.class)))})
     @PostMapping("/")
-    public GameResponse createGame(
+    public @NotNull GameResponse createGame(
             // spring needs to know where this Java method parameter is coming from
             // @RequestBody means it's the http request body
             @RequestBody CreateGameRequest createGameRequest) {
@@ -49,7 +50,7 @@ public class GameController {
                     schema = @Schema(implementation = GameResponse.class)))})
     // see that gameId is inside {} to make it a path variable
     @GetMapping("/{gameId}")
-    public GameResponse getGameInfo(
+    public @NotNull GameResponse getGameInfo(
             // the annotation @PathVariable tells spring to take the parameter data from the URL
             @PathVariable String gameId) {
         KniffelGame game = gameService.getGameInfo(gameId);
@@ -62,7 +63,7 @@ public class GameController {
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = GameResponse.class)))})
     @PostMapping("/{gameId}/roll")
-    public GameResponse roll(@PathVariable String gameId, @RequestBody DiceRollRequest diceRollRequest) {
+    public @NotNull GameResponse roll(@PathVariable String gameId, @RequestBody DiceRollRequest diceRollRequest) {
         KniffelGame kniffelGame = gameService.getGameInfo(gameId);
         gameService.roll(kniffelGame, diceRollRequest.getDiceToKeep());
         return mapGameResponse(kniffelGame);
@@ -74,7 +75,7 @@ public class GameController {
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = GameResponse.class)))})
     @PostMapping("/{gameId}/book")
-    public GameResponse book(@PathVariable String gameId, @RequestBody BookRollRequest bookRollRequest) {
+    public @NotNull GameResponse book(@PathVariable String gameId, @RequestBody BookRollRequest bookRollRequest) {
         KniffelGame kniffelGame = gameService.getGameInfo(gameId);
         BookingType enumBookingType = BookingType.valueOf(bookRollRequest.getBookingType());
         gameService.bookRoll(kniffelGame, enumBookingType);

@@ -1,117 +1,87 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from 'vue'
+import type { Ref } from 'vue'
+import createClient from 'openapi-fetch';
+import type { components, paths } from '@/api/v1';
 
-// make URL of the backend server configurable via build-time environment variable
-const SERVER_BASE = `${__API_URL__}`;
+const client = createClient<paths>({ baseUrl: `${__API_URL__}` });
 
 interface PlayerInformation {
     index: number;
     name: string;
 }
 
-interface PlayerData {
-    name: string;
-    score: number;
-}
-
-interface GameData {
-    gameId: string;
-    currentPlayerName: string;
-    playerData: PlayerData[];
-    state: string;
-    rollRound: number;
-    diceRolls: number[];
-    availableBookingTypes: string[];
-    usedBookingTypes: string[];
-}
-
-const names = ref<PlayerInformation[]>([{index: 0, name: ''}, {index: 1, name: ''}]);
-const gameData = ref<GameData>({ gameId: '', currentPlayerName: '', playerData: [], state: '', rollRound: 0, diceRolls: [], availableBookingTypes: [], usedBookingTypes: []});
+const names : Ref<PlayerInformation[]> = ref([{index: 0, name: ''}, {index: 1, name: ''}]);
+const gameData : Ref<components["schemas"]["GameResponse"]|undefined> = ref();
 const rerollSelection = ref([false, false, false, false, false]);
 // the booking type selected in the dropdown box
-const selectedBookingType = ref('');
+const selectedBookingType : Ref<components["schemas"]["GameResponse"]["usedBookingTypes"]|undefined> = ref();
 
 async function createGame() {
-    try {
-        const response = await fetch(`${SERVER_BASE}/api/v1/game/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                playerNames: names.value.map(n => n.name)
-            })
-        });
-        if (response.status > 299) {
-            alert('Error creating game');
-            return;
+    const { data } = await client.POST("/api/v1/game/", {
+        body: {
+            playerNames: names.value.map(n => n.name)
         }
-        gameData.value = await response.json();
-    } catch (e) {
-        alert('Error creating game : ' + JSON.stringify(e));
-    }
+    });
+    gameData.value = data;
 }
 
 async function reroll() {
     const diceToKeep : number[] = [];
-    for (let i = 0; i < gameData.value.diceRolls.length; i++) {
-        if (rerollSelection.value[i]) {
-            diceToKeep.push(gameData.value.diceRolls[i]);
-        }
-    }
-    try {
-        const response = await fetch(`${SERVER_BASE}/api/v1/game/${gameData.value.gameId}/roll`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({diceToKeep})
-        });
-        if (response.status !== 200) {
-            alert('Error creating game');
-            return;
-        }
-        gameData.value = await response.json();
-        selectedBookingType.value = '';
+    if (gameData.value) {
         for (let i = 0; i < gameData.value.diceRolls.length; i++) {
-            const idxToKeep = diceToKeep.indexOf(gameData.value.diceRolls[i]);
-            if (idxToKeep === -1) {
-                rerollSelection.value[i] = false;
-            } else {
-                rerollSelection.value[i] = true;
-                diceToKeep.splice(idxToKeep, 1);
+            if (rerollSelection.value[i]) {
+                diceToKeep.push(gameData.value.diceRolls[i]);
             }
         }
-    } catch (e) {
-        alert('Error rerolling dice : ' + JSON.stringify(e));
+        const { data } = await client.POST("/api/v1/game/{gameId}/roll", {
+            params: {
+                path: {
+                    gameId: gameData.value.gameId
+                }
+            },
+            body: {
+                diceToKeep
+            }
+        });
+        gameData.value = data;
+        selectedBookingType.value = undefined;
+        if (gameData.value) {
+            for (let i = 0; i < gameData.value.diceRolls.length; i++) {
+                const idxToKeep = diceToKeep.indexOf(gameData.value.diceRolls[i]);
+                if (idxToKeep === -1) {
+                    rerollSelection.value[i] = false;
+                } else {
+                    rerollSelection.value[i] = true;
+                    diceToKeep.splice(idxToKeep, 1);
+                }
+            }
+        }
     }
 }
 
 // simple REST API call to send the booking type
 async function book() {
-    try {
-        const response = await fetch(`${SERVER_BASE}/api/v1/game/${gameData.value.gameId}/book`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({bookingType: selectedBookingType.value})
-        });
-        if (response.status !== 200) {
-            alert('Error creating game');
-            return;
+  if (gameData.value) {
+    const { data } = await client.POST("/api/v1/game/{gameId}/book", {
+      params: {
+        path: {
+          gameId: gameData.value.gameId
         }
-        gameData.value = await response.json();
-        rerollSelection.value = [false, false, false, false, false];
-    } catch (e) {
-        alert('Error selecting booking category : ' + JSON.stringify(e));
-    }
+      },
+      body: {
+        bookingType: selectedBookingType.value
+      }
+    });
+    gameData.value = data;
+    rerollSelection.value = [false, false, false, false, false];
+  }
 }
 
 </script>
 
 <template>
-    <div v-if="!gameData.gameId">
+    <div v-if="!gameData?.gameId">
         <h1>Player Names</h1>
         <form>
             <ul>
@@ -123,10 +93,10 @@ async function book() {
         <button @click="names.push({index: names.length, name: ''})">Add Name</button> &nbsp;
         <button @click="createGame">Create Game</button>
     </div>
-    <div v-if="gameData.gameId">
+    <div v-if="gameData?.gameId">
         <h1>Game Scores</h1>
         <ul>
-            <li v-for="ply in gameData.playerData" :key="ply.name">
+            <li v-for="ply in gameData?.playerData" :key="ply.name">
                 Player {{ ply.name }} - Score: {{ ply.score }}
             </li>
         </ul>
@@ -134,10 +104,10 @@ async function book() {
             Current player: {{ gameData.currentPlayerName }}
         </h1>
     </div>
-    <div v-if="gameData.state === 'ROLL'">
-        <h3>Roll round: {{ gameData.rollRound }}</h3>
+    <div v-if="gameData?.state === 'ROLL'">
+        <h3>Roll round: {{ gameData?.rollRound }}</h3>
         <div> These types are still available:
-            {{ gameData.availableBookingTypes }}
+            {{ gameData?.availableBookingTypes }}
         </div>
         <h3 style="margin-top: 30px;">Select the dice to keep:</h3>
           <ul>
@@ -147,7 +117,7 @@ async function book() {
           </ul>
         <button @click="reroll">Roll</button>
     </div>
-    <div v-if="gameData.state === 'BOOK'">
+    <div v-if="gameData?.state === 'BOOK'">
         <h1>Final dice rolls: {{  gameData.diceRolls }}</h1>
         <div class="mt-20">
           Select the booking type:

@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  db:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./data-mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin" ,"ping", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  backend:
+    # change kniffel-server to match your directory name of the spring REST api
+    build: ./kniffel-server
+    ports:
+      - 8080:8080
+    environment:
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.mariadb.jdbc.Driver
+      SPRING_DATASOURCE_URL: jdbc:mariadb://db/kniffel?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  frontend:
+    # change kniffel-client to match your directory name of the vue client
+    build: ./kniffel-client
+    ports:
+      - 80:80
+    depends_on:
+      backend:
+        condition: service_healthy
