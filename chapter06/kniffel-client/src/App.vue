@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import createClient from 'openapi-fetch';
 import type { components, paths } from '@/api/v1';
 
-const client = createClient<paths>({ baseUrl: `${__API_URL__}` });
+let client = createClient<paths>();
 
 interface PlayerInformation {
     index: number;
@@ -16,8 +16,10 @@ const gameData : Ref<components["schemas"]["GameResponse"]|undefined> = ref();
 const rerollSelection = ref([false, false, false, false, false]);
 // the booking type selected in the dropdown box
 const selectedBookingType : Ref<components["schemas"]["GameResponse"]["usedBookingTypes"]|undefined> = ref();
+const apiServer = ref(`${__API_URL__}`);
 
 async function createGame() {
+    client = createClient<paths>({ baseUrl: apiServer.value });
     const { data } = await client.POST("/api/v1/game/", {
         body: {
             playerNames: names.value.map(n => n.name)
@@ -82,6 +84,13 @@ async function book() {
 
 <template>
     <div v-if="!gameData?.gameId">
+        <h1>API Server</h1>
+        <select v-model="apiServer">
+            <option>https://api-kniffel.oglimmer.com</option>
+            <option>https://api-rust-kniffel.oglimmer.com</option>
+            <option>http://localhost:8080</option>
+        </select>
+
         <h1>Player Names</h1>
         <form>
             <ul>
