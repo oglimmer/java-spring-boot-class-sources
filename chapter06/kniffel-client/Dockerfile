@@ -1,5 +1,5 @@
 # again we start with a base image matching our needs. in this case nodejs
-FROM node:18 as builder
+FROM node:18 AS builder
 
 # make REST API URL configurable via environment variable
 ARG API_URL
