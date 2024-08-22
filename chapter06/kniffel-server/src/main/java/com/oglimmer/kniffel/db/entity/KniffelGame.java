@@ -117,8 +117,12 @@ public class KniffelGame {
         log.debug("Game {} next phase. new phase {}", gameId, getState());
         if (getState() == GameState.ROLL) {
             setCurrentPlayer(findNextPlayer());
-            setRollRound(0);
-            roll(null);
+            if (getCurrentPlayer().getUsedBookingTypes().size() == BookingType.values().length) {
+                setState(GameState.ENDED);
+            } else {
+                setRollRound(0);
+                roll(null);
+            }
         }
     }
 
